@@ -29,6 +29,7 @@ app.use("/uploads", express.static(uploadsDir));
 
 // Routes
 app.use("/api/admin", adminRoutes);
+app.use("/", adminRoutes); // legacy alias for direct /login, /register, /me paths
 app.use("/api/contact", contactRoutes);
 app.use("/api/submissions", authMiddleware, submissionRoutes);
 app.use("/api/services", serviceRoutes);
