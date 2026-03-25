@@ -42,6 +42,10 @@ app.use("/api/admin", adminRoutes);
 // ❌ REMOVE THIS (can cause conflicts)
 /// app.use("/", adminRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Server working ✅");
+});
+
 app.use("/api/contact", contactRoutes);
 app.use("/api/submissions", authMiddleware, submissionRoutes);
 app.use("/api/services", serviceRoutes);
