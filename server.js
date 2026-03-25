@@ -18,7 +18,10 @@ const app = express();
 
 // ✅ FIX 1: Proper CORS (important for frontend)
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: [
+    "http://localhost:5173",
+    "https://frontend-cma.onrender.com"
+  ],
   credentials: true
 }));
 
