@@ -27,50 +27,52 @@ router.post("/", async (req, res) => {
 
     await newSubmission.save();
 
-    // ✅ EMAIL SAFE (MAIN FIX)
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      try {
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-          },
-        });
-
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER, // ✅ FIX (NOT user email)
-          replyTo: email,
-          to: process.env.EMAIL_USER,
-          subject: `New Inquiry - ${service || "General"}`,
-          html: `
-            <h2>New Client Inquiry</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone || "N/A"}</p>
-            <p><strong>Service:</strong> ${service || "N/A"}</p>
-            <p><strong>Message:</strong> ${message}</p>
-          `,
-        });
-
-        console.log("✅ Mail sent");
-
-      } catch (mailError) {
-        console.log("❌ Mail Error:", mailError.message);
-        // ❗ IMPORTANT: crash nahi hone dena
-      }
-    }
-
+    // ✅ ⚡ FAST RESPONSE (NO DELAY)
     res.status(200).json({
       message: "Inquiry submitted successfully",
     });
 
+    // ✅ EMAIL IN BACKGROUND (NON-BLOCKING)
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      setImmediate(async () => {
+        try {
+          const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASS,
+            },
+          });
+
+          await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            replyTo: email,
+            to: process.env.EMAIL_USER,
+            subject: `New Inquiry - ${service || "General"}`,
+            html: `
+              <h2>New Client Inquiry</h2>
+              <p><strong>Name:</strong> ${name}</p>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Phone:</strong> ${phone || "N/A"}</p>
+              <p><strong>Service:</strong> ${service || "N/A"}</p>
+              <p><strong>Message:</strong> ${message}</p>
+            `,
+          });
+
+          console.log("✅ Mail sent");
+
+        } catch (mailError) {
+          console.log("❌ Mail Error:", mailError.message);
+        }
+      });
+    }
+
   } catch (error) {
-    console.error("🔥 SERVER ERROR:", error);
-  res.status(500).json({
-  error: error.message,
-  fullError: error
-});;
+    console.error("🔥 SERVER ERROR:", error.message);
+
+    res.status(500).json({
+      error: error.message,
+    });
   }
 });
 
