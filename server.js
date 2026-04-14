@@ -20,7 +20,8 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://frontend-cma.onrender.com"
+    "https://frontend-cma.onrender.com",
+    "https://admin-pannel-serviceprovider.onrender.com"
   ],
   credentials: true
 }));
