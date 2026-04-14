@@ -33,7 +33,10 @@ router.post("/", async (req, res) => {
     });
 
     // ✅ EMAIL IN BACKGROUND (NON-BLOCKING)
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    const emailUser = process.env.EMAIL_USER?.trim();
+    const emailPass = process.env.EMAIL_PASS?.trim();
+
+    if (!emailUser || !emailPass) {
       console.warn("⚠️ Email credentials are missing. Skipping email send.");
       return;
     }
@@ -45,8 +48,8 @@ router.post("/", async (req, res) => {
           port: 465,
           secure: true,
           auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
+            user: emailUser,
+            pass: emailPass,
           },
           tls: {
             rejectUnauthorized: false,
@@ -56,9 +59,9 @@ router.post("/", async (req, res) => {
         await transporter.verify();
 
         await transporter.sendMail({
-          from: `Website Contact <${process.env.EMAIL_USER}>`,
+          from: `Website Contact <${emailUser}>`,
           replyTo: email,
-          to: process.env.EMAIL_USER,
+          to: emailUser,
           subject: `New Inquiry - ${service || "General"}`,
           html: `
             <h2>New Client Inquiry</h2>
