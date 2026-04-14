@@ -33,39 +33,48 @@ router.post("/", async (req, res) => {
     });
 
     // ✅ EMAIL IN BACKGROUND (NON-BLOCKING)
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      setImmediate(async () => {
-        try {
-          const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-              user: process.env.EMAIL_USER,
-              pass: process.env.EMAIL_PASS,
-            },
-          });
-
-          await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            replyTo: email,
-            to: process.env.EMAIL_USER,
-            subject: `New Inquiry - ${service || "General"}`,
-            html: `
-              <h2>New Client Inquiry</h2>
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Phone:</strong> ${phone || "N/A"}</p>
-              <p><strong>Service:</strong> ${service || "N/A"}</p>
-              <p><strong>Message:</strong> ${message}</p>
-            `,
-          });
-
-          console.log("✅ Mail sent");
-
-        } catch (mailError) {
-          console.log("❌ Mail Error:", mailError.message);
-        }
-      });
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn("⚠️ Email credentials are missing. Skipping email send.");
+      return;
     }
+
+    setImmediate(async () => {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: "smtp.gmail.com",
+          port: 465,
+          secure: true,
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+          },
+          tls: {
+            rejectUnauthorized: false,
+          },
+        });
+
+        await transporter.verify();
+
+        await transporter.sendMail({
+          from: `Website Contact <${process.env.EMAIL_USER}>`,
+          replyTo: email,
+          to: process.env.EMAIL_USER,
+          subject: `New Inquiry - ${service || "General"}`,
+          html: `
+            <h2>New Client Inquiry</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone || "N/A"}</p>
+            <p><strong>Service:</strong> ${service || "N/A"}</p>
+            <p><strong>Message:</strong> ${message}</p>
+          `,
+        });
+
+        console.log("✅ Mail sent successfully for inquiry from", email);
+      } catch (mailError) {
+        console.error("❌ Mail Error:", mailError);
+      }
+    });
 
   } catch (error) {
     console.error("🔥 SERVER ERROR:", error.message);
